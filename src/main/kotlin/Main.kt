@@ -27,7 +27,7 @@ class CodeAnalyzer {
         val mostComplexMethods = methodComplexities.sortedByDescending { it.complexity }.take(3)
         val nonCamelCaseCount = methodNames.count { !it.isCamelCase() }
 
-        println("Top 3 most complex methods:")
+        println("Top ${mostComplexMethods.size} most complex methods:")
         mostComplexMethods.forEach {
             println("${it.name}: Complexity = ${it.complexity}")
         }
