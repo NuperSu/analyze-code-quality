@@ -57,7 +57,7 @@ class CodeAnalyzer {
     }
 
     private fun String.isCamelCase(): Boolean {
-        return this[0].isLowerCase() and this.none { it.isWhitespace() }
+        return this.isNotEmpty() && this[0].isLowerCase() && this.all { it.isLetter() } && this.any { it.isUpperCase() }
     }
 }
 
