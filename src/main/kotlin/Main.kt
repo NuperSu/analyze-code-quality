@@ -32,7 +32,7 @@ class CodeAnalyzer {
     }
 
     fun getMethodComplexities(content: String): List<MethodComplexity> {
-        val methodPattern = "fun\\s+(\\w+)\\s*\\([^)]*\\)\\s*\\{([^}]+)\\}".toRegex()
+        val methodPattern = """fun\s+(\w+)\s*\([^)]*\)\s*\{([\s\S]*?)\}(?=\s*(fun|$))""".toRegex()
         return methodPattern.findAll(content).map {
             val methodName = it.groupValues[1]
             val methodBody = it.groupValues[2]
@@ -44,7 +44,7 @@ class CodeAnalyzer {
     internal fun calculateComplexity(methodBody: String): Int {
         val keywords = listOf("if", "for", "while", "switch", "do", "try", "catch", "finally")
         return keywords.sumOf { keyword ->
-            "\\b$keyword\\b".toRegex().findAll(methodBody).count()
+            "\\b$keyword\\b".toRegex(setOf(RegexOption.MULTILINE)).findAll(methodBody).count()
         }
     }
 
