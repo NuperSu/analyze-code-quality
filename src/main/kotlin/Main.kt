@@ -5,18 +5,14 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 class CodeAnalyzer {
-    fun analyzeDirectory(path: String) {
+    fun analyzeDirectory(path: String): List<String> {
         val files = File(path).walk()
             .filter { it.isFile && (it.extension == "java" || it.extension == "kt") }
             .toList()
 
-        if (files.isEmpty()) {
-            println("No Java or Kotlin files found in the directory.")
-            return
-        }
-
         val methodComplexities = mutableListOf<MethodComplexity>()
         val methodNames = mutableListOf<String>()
+        val results = mutableListOf<String>()
 
         files.forEach { file ->
             val content = Files.readString(Paths.get(file.toURI()))
@@ -27,14 +23,12 @@ class CodeAnalyzer {
         val mostComplexMethods = methodComplexities.sortedByDescending { it.complexity }.take(3)
         val nonCamelCaseCount = methodNames.count { !it.isCamelCase() }
 
-        println("Top ${mostComplexMethods.size} most complex methods:")
         mostComplexMethods.forEach {
-            println("${it.name}: Complexity = ${it.complexity}")
+            results.add("${it.name}: Complexity = ${it.complexity}")
         }
 
-        if (methodNames.isNotEmpty()) {
-            println("\nPercentage of methods not following camelCase: ${100.0 * nonCamelCaseCount / methodNames.size}%")
-        }
+        results.add("Percentage of methods not following camelCase: ${100.0 * nonCamelCaseCount / methodNames.size}%")
+        return results
     }
 
     fun getMethodComplexities(content: String): List<MethodComplexity> {
@@ -42,13 +36,19 @@ class CodeAnalyzer {
         return methodPattern.findAll(content).map {
             val methodName = it.groupValues[1]
             val methodBody = it.groupValues[2]
-            val complexity =
-                methodBody.count { ch -> ch in "?:ifsw".toList() } // Simplified complexity count
+            val complexity = calculateComplexity(methodBody)
             MethodComplexity(methodName, complexity)
         }.toList()
     }
 
-    private fun getMethodNames(content: String): List<String> {
+    internal fun calculateComplexity(methodBody: String): Int {
+        val keywords = listOf("if", "for", "while", "switch", "do", "try", "catch", "finally")
+        return keywords.sumOf { keyword ->
+            "\\b$keyword\\b".toRegex().findAll(methodBody).count()
+        }
+    }
+
+    internal fun getMethodNames(content: String): List<String> {
         val methodPattern = "fun\\s+(\\w+)\\s*\\(".toRegex()
         return methodPattern.findAll(content).map { it.groupValues[1] }.toList()
     }
