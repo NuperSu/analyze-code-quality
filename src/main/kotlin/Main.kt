@@ -6,6 +6,10 @@ import java.nio.file.Paths
 
 class CodeAnalyzer {
     fun analyzeDirectory(path: String): List<String> {
+        if (!File(path).isDirectory) {
+            return listOf("The provided path is not a directory.")
+        }
+
         val files = File(path).walk()
             .filter { it.isFile && (it.extension == "java" || it.extension == "kt") }
             .toList()
@@ -71,5 +75,6 @@ fun main(args: Array<String>) {
 
     val directoryPath = args[0]
     val codeAnalyzer = CodeAnalyzer()
-    codeAnalyzer.analyzeDirectory(directoryPath)
+    val results = codeAnalyzer.analyzeDirectory(directoryPath)
+    results.forEach(::println)
 }
