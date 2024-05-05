@@ -32,13 +32,10 @@ class CodeAnalyzer {
     }
 
     fun getMethodComplexities(content: String): List<MethodComplexity> {
-        val methodPattern = """fun\s+(\w+)\s*\([^)]*\)\s*\{([\s\S]*?)\}(?=\s*(fun|$))""".toRegex()
-        return methodPattern.findAll(content).map {
-            val methodName = it.groupValues[1]
-            val methodBody = it.groupValues[2]
-            val complexity = calculateComplexity(methodBody)
-            MethodComplexity(methodName, complexity)
-        }.toList()
+        return getMethods(content).map { (name, body) ->
+            val complexity = calculateComplexity(body)
+            MethodComplexity(name, complexity)
+        }
     }
 
     internal fun calculateComplexity(methodBody: String): Int {
@@ -49,12 +46,18 @@ class CodeAnalyzer {
     }
 
     internal fun getMethodNames(content: String): List<String> {
-        val methodPattern = "fun\\s+(\\w+)\\s*\\(".toRegex()
-        return methodPattern.findAll(content).map { it.groupValues[1] }.toList()
+        return getMethods(content).map { it.first }
+    }
+
+    private fun getMethods(content: String): List<Pair<String, String>> {
+        val methodPattern = """fun\s+(\w+)\s*\([^)]*\)\s*\{([\s\S]*?)\}(?=\s*(fun|$))""".toRegex()
+        return methodPattern.findAll(content).map {
+            it.groupValues[1] to it.groupValues[2]
+        }.toList()
     }
 
     private fun String.isCamelCase(): Boolean {
-        return this[0].isLowerCase() && this.none { it.isWhitespace() }
+        return this[0].isLowerCase() and this.none { it.isWhitespace() }
     }
 }
 
